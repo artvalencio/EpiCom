@@ -24,17 +24,24 @@ considerar variáveis socioespaciais e quais os impactos habituais no total de c
 ------------------------------------------------------------------------------------
 
 Arthur Valencio
+
 Pós-doc, Instituto de Computação, Unicamp
+
 CEPID NeuroMat
+
 Bolsista de pós-doutorado, processo número 2017/09900-8, Fundaçao de Amparo à Pesquisa do Estado de
 São Paulo (FAPESP)
+
 Este trabalho foi produzido como parte das atividades do Centro de Pesquisa, Inovação e Difusão em
 Neuromatemática (processo no. 2013/07699-0, FAPESP). As opiniões, hipóteses e conclusões ou recomendações
 expressas neste material são de responsabilidade do autor e não necessariamente refletem a visão da FAPESP.
 
+---
 
 Norma Valencio
+
 Professora Senior, Departamento de Ciencias Ambientais, UFSCar
+
 Bolsista produtividade, processo número 310976/2017-0, Conselho Nacional de Desenvolvimento Científico e
 Tecnológico (CNPq)
 
