@@ -75,10 +75,15 @@ class pessoa:
     def __init__(self,casa,trabalho,sz_casa,sz_trabalho,sz_cidade):
         self.casa=casa
         self.trabalho=trabalho
-        if random.random()<0.4:
+        if random.random()<0.6:
             self.localizacao="casa"
             self.x=random.random()*sz_casa
             self.y=random.random()*sz_casa
+        #remover o comentario a seguir caso deseje populaçao inicial
+        #nas áreas comuns da comunidade. (No caso, nao inserimos pois
+        #pensamos em exemplificar o caso de lockdown, isto é,
+        #p_transitar=0 implica áreas comuns vazias).
+        #
         #elif random.random()<0.3:
         #    self.localizacao="cidade"
         #    self.x=random.random()*sz_cidade
@@ -95,7 +100,7 @@ class pessoa:
         self.sz_cidade=sz_cidade
         
     def move(self,pessoas,interacao,t_cura,p_transitar):        
-        if random.random()<p_transitar:
+        if random.random()>p_transitar:
             if self.localizacao=="casa":
                 distancia=self.sz_casa**2
                 for i in range(len(pessoas)):
@@ -349,13 +354,13 @@ def main():
             casa_infectada=pessoas[idx[n_infecta]].casa
             trabalho_infectado=pessoas[idx[n_infecta]].trabalho
             
-            tab1_layout = [[sg.Text('Visão da comunidade (áreas comuns)', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab1_layout = [[sg.Text('Visão aérea da comunidade (áreas comuns)', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS1-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab2_layout = [[sg.Text('Visão de uma das casas', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab2_layout = [[sg.Text('Visão aérea de uma das casas', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS2-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab3_layout=[[sg.Text('Visão de um dos locais de trabalho/escola', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab3_layout=[[sg.Text('Visão aérea de um dos locais de trabalho/escola', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS3-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
             tab4_layout=[[sg.Text('Evolução do número de casos sintomáticos', size=(40, 1), justification='center', font='Helvetica 20')],
