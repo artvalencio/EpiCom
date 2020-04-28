@@ -1,39 +1,49 @@
-'''Este simulador é um toy-model de uma pequena comunidade (small-world)
+'''EpiCom
+Simulador de epidemia em comunidade (toy model)
+
+
+Este simulador é um toy-model de uma pequena comunidade (small-world)
 composta de tres tipos de ambientes (áreas comuns, casas e locais de trabalho/escolas) e o impacto de
 uma epidemia nesta comunidade.
-Podem ser escolhidos os tamanhos padrao destes ambientes e o número de pessoas que abrigam.
-A cada instante de tempo uma pessoa tem uma probabilidade pequena de mudar de ambiente, isto é,
-ir da casa para o trabalho, por exemplo.
-A movimentaçao das pessoas é uma combinaçao de movimento aleatório (distribuiçao normal)
-com movimento direcionado ao indivíduo mais próximo, replicando assim espacialidade da interaçao social.
-Entao, os parametros epidemicos sao adicionados (tempo de incubaçao, probabilidade de contágio,
-tempo de recuperacao, probabilidade de morte etc).
+Podem ser escolhidos os tamanhos padrão destes ambientes e o número de pessoas que abrigam.
+A cada instante de tempo uma pessoa tem uma probabilidade pequena de se deslocar de ambiente, isto é,
+ir da casa para o trabalho, por exemplo. Supõe-se que os deslocamentos em torno de 30".
+O deslocamentos de uma pessoa é uma combinaçao de movimento aleatório (distribuiçao normal)
+com movimento direcionado ao indivíduo mais próximo, replicando assim certos padrões de interaçao social
+em diferentes espacialidades.
+Em seguida, os parâmetros epidêmicos são adicionados ao modelo (tempo de incubação, probabilidade de contágio,
+tempo de recuperacão, probabilidade de morte etc).
 
 ------------------------------------------------------------------------------------
-ESTE MODELO É UMA APROXIMAÇAO BASTANTE SIMPLIFICADA E NAO DEVE SER UTILIZADO PARA PREVISAO DE
+ESTE MODELO É UMA APROXIMAÇAO BASTANTE SIMPLIFICADA E NÃO DEVE SER UTILIZADO PARA PREVISAO DE
 CENÁRIOS EPIDEMIOLÓGICOS REAIS
 
-Os propósitos desse modelo sáo EDUCATIVOS no sentido de avaliar como é possível, incrementalmente,
+Os propósitos desse modelo são EDUCATIVOS no sentido de avaliar como é possível, incrementalmente,
 considerar variáveis socioespaciais e quais os impactos habituais no total de casos/mortes registradas.
 
 ------------------------------------------------------------------------------------
 
 Arthur Valencio
-Pós-doc, Instituto de Computaçao
+Pós-doc, Instituto de Computação, Unicamp
 CEPID NeuroMat
-
 Bolsista de pós-doutorado, processo número 2017/09900-8, Fundaçao de Amparo à Pesquisa do Estado de
-Sao Paulo (FAPESP)
-Este trabalho foi produzido como parte das atividades do Centro de Pesquisa, Inovaçao e Difusao em
-Neuromatemática (processo no. 2013/07699-0, FAPESP). As opinioes, hipóteses e conclusoes ou recomendaçoes
-expressas neste material sao de responsabilidade do autor e nao necessariamente refletem a visao da FAPESP.
+São Paulo (FAPESP)
+Este trabalho foi produzido como parte das atividades do Centro de Pesquisa, Inovação e Difusão em
+Neuromatemática (processo no. 2013/07699-0, FAPESP). As opiniões, hipóteses e conclusões ou recomendações
+expressas neste material são de responsabilidade do autor e não necessariamente refletem a visão da FAPESP.
+
+
+Norma Valencio
+Professora Senior, Departamento de Ciencias Ambientais, UFSCar
+Bolsista produtividade, processo número 310976/2017-0, Conselho Nacional de Desenvolvimento Científico e
+Tecnológico (CNPq)
 
 ------------------------------------------------------------------------------------
 
 Se útil, cite:
-Valencio, A.; Valencio, N. Limitaçoes da modelagem de epidemias: diferentes escalas e suas premisas
-subjacentes. In: Valencio, N.; C. COVID-19: Crises entremeadas ao contexto de pandemia (antecedentes,
-cenários e recomendaçoes). Sao Carlos: CEPOI-UFSCar.
+Valencio, A.; Valencio, N. Subsidios à uma discussão comunitária acerca de modelagem de epidemias.
+In: Valencio, N.; Malan, C. COVID-19: Crises entremeadas no contexto de pandemia (antecedentes,
+cenários e recomendações). São Carlos: CPOI-UFSCar, 2020.
 
 Contato: arthur_valencio@physics.org
 '''
@@ -56,6 +66,7 @@ p_sintomatico=0.7
 total_casos=[]
 total_mortos=[0]
 total_curados=[0]
+tempo=[0]
 adiciona_casos=0
 adiciona_mortos=0
 adiciona_curados=0
@@ -64,19 +75,18 @@ class pessoa:
     def __init__(self,casa,trabalho,sz_casa,sz_trabalho,sz_cidade):
         self.casa=casa
         self.trabalho=trabalho
-        p=random.random()
-        if p<0.4:
+        if random.random()<0.4:
             self.localizacao="casa"
             self.x=random.random()*sz_casa
             self.y=random.random()*sz_casa
-        elif p<0.8:
+        #elif random.random()<0.3:
+        #    self.localizacao="cidade"
+        #    self.x=random.random()*sz_cidade
+        #    self.y=random.random()*sz_cidade
+        else:
             self.localizacao="trabalho"
             self.x=random.random()*sz_trabalho
             self.y=random.random()*sz_trabalho
-        else:
-            self.localizacao="cidade"
-            self.x=random.random()*sz_cidade
-            self.y=random.random()*sz_cidade
         self.status="nao infectado"
         self.conta_incubacao=-1
         self.conta_cura=-1
@@ -269,23 +279,26 @@ def infecta(pessoas,raio,p_assintomatico,p_sintomatico,t_incubacao):
 def main():
 
     sg.theme("SystemDefault")
-    layout_params = [[ sg.Text('Insira os parametros'), sg.Button('Iniciar simulaçao')],  
-          [sg.Text("Probabilidade de desenvolvimento de forma sintomática:"),sg.Slider((0.0,1.0), default_value=0.4, resolution=0.01, key='p_desenv_sintomatica', orientation='h', enable_events=True, disable_number_display=False)],  
-          [sg.Text("Tempo de incubaçao:"),sg.Slider((1,100), key='t_incubacao', orientation='h', default_value=20, resolution=1, enable_events=True, disable_number_display=False),
-          sg.Text("Tempo de recuperaçao:"),sg.Slider((1,100), key='t_recuperacao', orientation='h', default_value=20, resolution=1, enable_events=True, disable_number_display=False)],
-          [sg.Text("Probabilidade de morte:"),sg.Slider((0.0,1.0), key='p_morte', orientation='h', default_value=0.3, resolution=0.01, enable_events=True, disable_number_display=False),
-          sg.Text("Raio de contágio:"),sg.Slider((0.1,100.0), key='raio', orientation='h', default_value=5, resolution=0.01, enable_events=True, disable_number_display=False)],
-          [sg.Text("Probabilidade de contágio a partir de contato com assintomático:"),sg.Slider((0.0,1.0), key='p_assintomatico', default_value=0.4, orientation='h', resolution=0.01, enable_events=True, disable_number_display=False)],  
-          [sg.Text("Probabilidade de contágio a partir de contato com sintomático:"),sg.Slider((0.0,1.0), key='p_sintomatico', default_value=0.7, orientation='h', resolution=0.01, enable_events=True, disable_number_display=False)],  
-          [sg.Text("Interaçao social da populaçao:"),sg.Slider((0,100), key='interacao', orientation='h', default_value=50, enable_events=True, disable_number_display=False),
-          sg.Text("Probabilidade de transitar (ex: mudar da casa para o trabalho):"),sg.Slider((0,0.2), key='p_transitar', resolution=0.01, orientation='h', default_value=0.1, enable_events=True, disable_number_display=False)],
-          [sg.Text("Número de pessoas:"),sg.Slider((10,1000), key='n_pessoas', orientation='h', default_value=300, enable_events=True, disable_number_display=False),
-          sg.Text("Número de trabalhadores/estudantes em cada local:"),sg.Slider((1,300), key='n_trabalhos', orientation='h', default_value=20, enable_events=True, disable_number_display=False)],
-          [sg.Text("Número de moradores em cada casa:"),sg.Slider((1,15), key='n_casas', orientation='h', default_value=5, enable_events=True, disable_number_display=False),
-          sg.Text("Tamanho das casas:"),sg.Slider((5,100), key='sz_casa', orientation='h', default_value=10, enable_events=True, disable_number_display=False)],
-          [sg.Text("Tamanho dos locais de trabalho/escolas:"),sg.Slider((10,200), key='sz_trabalho', orientation='h',default_value=20, enable_events=True, disable_number_display=False),
-          sg.Text("Tamanho da comunidade (áreas comuns):"),sg.Slider((50,10000), key='sz_cidade', orientation='h', default_value=1000, enable_events=True, disable_number_display=False)],
-          [sg.Text("Percentual de pessoas inicialmente infectadas:"),sg.Slider((0.01,0.1), key='pc_infec', orientation='h', default_value=0.05, resolution=0.01, enable_events=True, disable_number_display=False)],]
+    layout_params = [[ sg.Text('Insira os parametros')],
+          [sg.Text('Variáveis socioespaciais:')],
+          [sg.Text("1. Número de pessoas:"),sg.Slider((10,5000), key='n_pessoas', orientation='h', default_value=500, enable_events=True, disable_number_display=False),
+          sg.Text("2. Número máximo de trabalhadores/estudantes em cada local:"),sg.Slider((1,500), key='n_trabalhos', orientation='h', default_value=30, enable_events=True, disable_number_display=False)],
+          [sg.Text("3. Número total de moradores em cada casa:"),sg.Slider((1,15), key='n_casas', orientation='h', default_value=5, enable_events=True, disable_number_display=False),
+          sg.Text("4. Tamanho das casas (m2):"),sg.Slider((5,300), key='sz_casa', orientation='h', default_value=40, enable_events=True, disable_number_display=False)],
+          [sg.Text("5. Tamanho dos locais de trabalho/escolas (m2):"),sg.Slider((10,600), key='sz_trabalho', orientation='h',default_value=100, enable_events=True, disable_number_display=False),
+          sg.Text("6. Tamanho da comunidade (áreas comuns) (m2):"),sg.Slider((50,10000), key='sz_cidade', orientation='h', default_value=1000, enable_events=True, disable_number_display=False)],
+          [sg.Text("7. Interação social da populaçao:"),sg.Slider((0,100), key='interacao', orientation='h', default_value=50, enable_events=True, disable_number_display=False)],
+          [sg.Text("8. Número médio de vezes por dia que um indivíduo transita entre ambientes interno-externo (ex: ir da casa para o trabalho):"),sg.Slider((0,4), key='p_transitar', resolution=0., orientation='h', default_value=2, enable_events=True, disable_number_display=False)],
+          [sg.Text('Variáveis epidemiológicas:')],
+          [sg.Text("10. Probabilidade de contágio a partir de contato com indivíduo assintomático (%):"),sg.Slider((0,100), key='p_assintomatico', default_value=10, orientation='h', resolution=1, enable_events=True, disable_number_display=False)],  
+          [sg.Text("11. Probabilidade de contágio a partir de contato com indivíduo sintomático (%):"),sg.Slider((0,100), key='p_sintomatico', default_value=40, orientation='h', resolution=1, enable_events=True, disable_number_display=False)],  
+          [sg.Text("12. Após o contágio, probabilidade de um indivíduo desenvolver forma sintomática (%):"),sg.Slider((0,100), default_value=40, resolution=1, key='p_desenv_sintomatica', orientation='h', enable_events=True, disable_number_display=False)],  
+          [sg.Text("13. Tempo de incubação (dias):"),sg.Slider((1,100), key='t_incubacao', orientation='h', default_value=20, resolution=1, enable_events=True, disable_number_display=False),
+          sg.Text("14. Tempo de recuperação (dias):"),sg.Slider((1,100), key='t_recuperacao', orientation='h', default_value=20, resolution=1, enable_events=True, disable_number_display=False)],
+          [sg.Text("15. Probabilidade de morte (%):"),sg.Slider((0,100), key='p_morte', orientation='h', default_value=10, resolution=1, enable_events=True, disable_number_display=False),
+          sg.Text("16. Raio de contágio (m):"),sg.Slider((0.1,10.0), key='raio', orientation='h', default_value=5, resolution=0.1, enable_events=True, disable_number_display=False)],
+          [sg.Text("17. Percentual de pessoas inicialmente infectadas (%):"),sg.Slider((0.01,100), key='pc_infec', orientation='h', default_value=5, resolution=0.01, enable_events=True, disable_number_display=False)],
+          [sg.Button('Iniciar simulaçao')],]
     
     win1 = sg.Window('EpiCom: Simulador de epidemia em comunidade (toy model)', layout_params)  
     win2_active=False
@@ -300,22 +313,21 @@ def main():
         global adiciona_mortos
         global adiciona_curados
         global p_desenv_sintomatica
-        p_desenv_sintomatica=vals1["p_desenv_sintomatica"]
+        p_desenv_sintomatica=vals1["p_desenv_sintomatica"]/100
         global t_incubacao
-        t_incubacao=int(vals1["t_incubacao"])
+        t_incubacao=int(vals1["t_incubacao"])*48
         global t_recuperacao
-        t_recuperacao=int(vals1["t_recuperacao"])
+        t_recuperacao=int(vals1["t_recuperacao"])*48
         global p_morte
-        p_morte=vals1["p_morte"]
-        p_morte=p_morte/t_recuperacao
+        p_morte=vals1["p_morte"]/(100*t_recuperacao)
         global raio
         raio=vals1["raio"]
         global p_assintomatico
-        p_assintomatico=vals1["p_assintomatico"]
+        p_assintomatico=vals1["p_assintomatico"]/100
         global p_sintomatico
-        p_sintomatico=vals1["p_sintomatico"]
+        p_sintomatico=vals1["p_sintomatico"]/100
         interacao=vals1["interacao"]
-        p_transitar=vals1["p_transitar"]
+        p_transitar=vals1["p_transitar"]/48
         
         if ev1 == 'Iniciar simulaçao'  and not win2_active:  
             win2_active = True  
@@ -324,7 +336,7 @@ def main():
                     int(vals1["n_casas"]),int(vals1["sz_casa"]),
                         int(vals1["sz_trabalho"]),int(vals1["sz_cidade"]))
 
-            n_infecta=int(vals1["n_pessoas"]*vals1["pc_infec"])
+            n_infecta=int(vals1["n_pessoas"]*vals1["pc_infec"]/100)
             global total_casos
             total_casos.append(n_infecta)
             idx=list(range(len(pessoas)))
@@ -337,26 +349,26 @@ def main():
             casa_infectada=pessoas[idx[n_infecta]].casa
             trabalho_infectado=pessoas[idx[n_infecta]].trabalho
             
-            tab1_layout = [[sg.Text('Comunidade', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab1_layout = [[sg.Text('Visão da comunidade (áreas comuns)', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS1-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab2_layout = [[sg.Text('Casa', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab2_layout = [[sg.Text('Visão de uma das casas', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS2-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab3_layout=[[sg.Text('Local de Trabalho/Escola', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab3_layout=[[sg.Text('Visão de um dos locais de trabalho/escola', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS3-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab4_layout=[[sg.Text('Evoluçao do número de casos sintomáticos', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab4_layout=[[sg.Text('Evolução do número de casos sintomáticos', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS4-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab5_layout=[[sg.Text('Evoluçao do número de mortos', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab5_layout=[[sg.Text('Evolução do número de mortos', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS5-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
-            tab6_layout=[[sg.Text('Evoluçao do número de curados', size=(40, 1), justification='center', font='Helvetica 20')],
+            tab6_layout=[[sg.Text('Evolução do número de curados', size=(40, 1), justification='center', font='Helvetica 20')],
               [sg.Canvas(size=(640, 480), key='-CANVAS6-')],
               [sg.Button('Fechar', size=(10, 2), pad=((280, 0), 3), font='Helvetica 14')]]
             layout = [[sg.TabGroup([[sg.Tab('Comunidade', tab1_layout, tooltip='tip'), sg.Tab('Casa', tab2_layout),
-                sg.Tab('Local de trabalho/Escola', tab3_layout),sg.Tab('Número de casos', tab4_layout),sg.Tab('Número de mortos', tab5_layout),
+                sg.Tab('Local de trabalho/escola', tab3_layout),sg.Tab('Número de casos', tab4_layout),sg.Tab('Número de mortos', tab5_layout),
                 sg.Tab('Número de curados', tab6_layout),]])]]
     
             win2 = sg.Window('Simulador', layout, finalize=True)
@@ -403,12 +415,14 @@ def main():
                 dic_cidade={'g':[],'b':[],'y':[],'r':[],'c':[]}
                 dic_casa={'g':[],'b':[],'y':[],'r':[],'c':[]}
                 dic_trabalho={'g':[],'b':[],'y':[],'r':[],'c':[]}
-                
+
                 for i in range(len(pessoas)):
                     if pessoas[i].status!="morto":
                         pessoas[i].move(pessoas,interacao,t_recuperacao,p_transitar)
-                        
+                
                 infecta(pessoas,raio,p_assintomatico,p_sintomatico,t_incubacao)
+
+                tempo.append(tempo[-1]+1/48)
 
                 total_casos.append(total_casos[-1]+adiciona_casos)
                 total_mortos.append(total_mortos[-1]+adiciona_mortos)
@@ -455,39 +469,39 @@ def main():
                             dic_casa["r"].append([pessoas[i].x,pessoas[i].y])
                         elif pessoas[i].status=="curado":
                             dic_cidade["c"].append([pessoas[i].x,pessoas[i].y])
-                    elif (pessoas[i].localizacao=="trabalho") and (pessoas[i].trabalho==trabalho_infectado):
+                    elif pessoas[i].localizacao=="trabalho" and pessoas[i].trabalho==trabalho_infectado:
                         if pessoas[i].status=="nao infectado":
                             dic_trabalho["g"].append([pessoas[i].x,pessoas[i].y])
                         elif pessoas[i].status=="incubado":
-                            dic_casa["b"].append([pessoas[i].x,pessoas[i].y])
+                            dic_trabalho["b"].append([pessoas[i].x,pessoas[i].y])
                         elif pessoas[i].status=="assintomatico":
-                            dic_casa["y"].append([pessoas[i].x,pessoas[i].y])
+                            dic_trabalho["y"].append([pessoas[i].x,pessoas[i].y])
                         elif pessoas[i].status=="sintomatico":
-                            dic_casa["r"].append([pessoas[i].x,pessoas[i].y])
+                            dic_trabalho["r"].append([pessoas[i].x,pessoas[i].y])
                         elif pessoas[i].status=="curado":
-                            dic_cidade["c"].append([pessoas[i].x,pessoas[i].y])
+                            dic_trabalho["c"].append([pessoas[i].x,pessoas[i].y])
 
-                ax1.scatter(coluna(dic_cidade["g"],0),coluna(dic_cidade["g"],1),c="g",alpha=0.3,label="nao infectados",edgecolors='none')
+                ax1.scatter(coluna(dic_cidade["g"],0),coluna(dic_cidade["g"],1),c="g",alpha=0.3,label="não infectados",edgecolors='none')
                 ax1.scatter(coluna(dic_cidade["b"],0),coluna(dic_cidade["b"],1),c="b",alpha=0.3,label="incubados",edgecolors='none')
                 ax1.scatter(coluna(dic_cidade["y"],0),coluna(dic_cidade["y"],1),c="y",alpha=0.3,label="assintomáticos",edgecolors='none')
                 ax1.scatter(coluna(dic_cidade["r"],0),coluna(dic_cidade["r"],1),c="r",alpha=0.3,label="sintomáticos",edgecolors='none')
                 ax1.scatter(coluna(dic_cidade["c"],0),coluna(dic_cidade["c"],1),c="c",alpha=0.3,label="curados",edgecolors='none')
                 ax1.legend(loc="upper right")
-                ax2.scatter(coluna(dic_casa["g"],0),coluna(dic_casa["g"],1),c="g",alpha=0.3,label="nao infectados",edgecolors='none')
+                ax2.scatter(coluna(dic_casa["g"],0),coluna(dic_casa["g"],1),c="g",alpha=0.3,label="não infectados",edgecolors='none')
                 ax2.scatter(coluna(dic_casa["b"],0),coluna(dic_casa["b"],1),c="b",alpha=0.3,label="incubados",edgecolors='none')
                 ax2.scatter(coluna(dic_casa["y"],0),coluna(dic_casa["y"],1),c="y",alpha=0.3,label="assintomáticos",edgecolors='none')
                 ax2.scatter(coluna(dic_casa["r"],0),coluna(dic_casa["r"],1),c="r",alpha=0.3,label="sintomáticos",edgecolors='none')
                 ax2.scatter(coluna(dic_casa["c"],0),coluna(dic_casa["c"],1),c="c",alpha=0.3,label="curados",edgecolors='none')
                 ax2.legend(loc="upper right")
-                ax3.scatter(coluna(dic_trabalho["g"],0),coluna(dic_trabalho["g"],1),c="g",alpha=0.3,label="nao infectados",edgecolors='none')
+                ax3.scatter(coluna(dic_trabalho["g"],0),coluna(dic_trabalho["g"],1),c="g",alpha=0.3,label="não infectados",edgecolors='none')
                 ax3.scatter(coluna(dic_trabalho["b"],0),coluna(dic_trabalho["b"],1),c="b",alpha=0.3,label="incubados",edgecolors='none')
                 ax3.scatter(coluna(dic_trabalho["y"],0),coluna(dic_trabalho["y"],1),c="y",alpha=0.3,label="assintomáticos",edgecolors='none')
                 ax3.scatter(coluna(dic_trabalho["r"],0),coluna(dic_trabalho["r"],1),c="r",alpha=0.3,label="sintomáticos",edgecolors='none')
                 ax3.scatter(coluna(dic_trabalho["c"],0),coluna(dic_trabalho["c"],1),c="c",alpha=0.3,label="curados",edgecolors='none')
                 ax3.legend(loc="upper right")
-                ax4.plot(total_casos,c="r")
-                ax5.plot(total_mortos,c="k")
-                ax6.plot(total_curados,c="c")
+                ax4.plot(tempo,total_casos,c="r")
+                ax5.plot(tempo,total_mortos,c="k")
+                ax6.plot(tempo,total_curados,c="c")
                 
                 ax1.set_xlim((0,pessoas[0].sz_cidade))
                 ax1.set_ylim((0,pessoas[0].sz_cidade))
@@ -495,11 +509,11 @@ def main():
                 ax2.set_ylim((0,pessoas[0].sz_casa))
                 ax3.set_xlim((0,pessoas[0].sz_trabalho))
                 ax3.set_ylim((0,pessoas[0].sz_trabalho))
-                ax4.set_xlabel("Tempo")
+                ax4.set_xlabel("Tempo (dias)")
                 ax4.set_ylabel("Total de casos sintomáticos (cumulativo)")
-                ax5.set_xlabel("Tempo")
+                ax5.set_xlabel("Tempo (dias)")
                 ax5.set_ylabel("Total de mortos (cumulativo)")
-                ax6.set_xlabel("Tempo")
+                ax6.set_xlabel("Tempo (dias)")
                 ax6.set_ylabel("Total de curados (cumulativo)")
                 
 
