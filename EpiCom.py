@@ -42,7 +42,7 @@ Tecnológico (CNPq)
 
 Se útil, cite:
 Valencio, A.; Valencio, N. Subsidios à uma discussão comunitária acerca de modelagem de epidemias.
-In: Valencio, N.; Malan, C. COVID-19: Crises entremeadas no contexto de pandemia (antecedentes,
+In: Valencio, N.; Oliveira, C. M. COVID-19: Crises entremeadas no contexto de pandemia (antecedentes,
 cenários e recomendações). São Carlos: CPOI-UFSCar, 2020.
 
 Contato: arthur_valencio@physics.org
@@ -54,8 +54,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 import matplotlib.pyplot as plt
 
-pessoas=[]
-
+#valores iniciais, serao alterados depois
+#implementaçao como variáveis globais permite acesso
+#pelas classes e funcoes sem precisar passar muitos parametros
 p_desenv_sintomatica=0.4
 t_incubacao=20
 t_recuperacao=100
@@ -63,10 +64,6 @@ p_morte=0.3
 raio=5
 p_assintomatico=0.4
 p_sintomatico=0.7
-total_casos=[]
-total_mortos=[0]
-total_curados=[0]
-tempo=[0]
 adiciona_casos=0
 adiciona_mortos=0
 adiciona_curados=0
@@ -200,9 +197,8 @@ class pessoa:
                 adiciona_casos+=1
             else:
                 self.status="assintomatico"
-                self.conta_cura=t_cura
         elif self.status=="assintomatico":
-            if t_cura==0:
+            if self.conta_cura<=0:
                 self.status="curado"                
                 adiciona_curados+=1
             else:
@@ -241,8 +237,10 @@ def cria_cidade(n_pessoas,n_pessoas_trabalho,n_pessoas_casa,sz_casa,sz_trabalho,
             conta_trabalho=n_pessoas_trabalho
             t=t+1
     random.shuffle(trabalho)
+    pessoas=[]
     for i in range(n_pessoas): 
         pessoas.append(pessoa(casa[i],trabalho[i],sz_casa,sz_trabalho,sz_cidade))
+    return pessoas
 
 def draw_figure(canvas, figure):
     figure_canvas_agg = FigureCanvasTkAgg(figure, canvas)
@@ -314,6 +312,12 @@ def main():
             win1.close()
             break
 
+        pessoas=[]
+        tempo=[0]
+        total_casos=[]
+        total_mortos=[0]
+        total_curados=[0]
+
         global adiciona_casos
         global adiciona_mortos
         global adiciona_curados
@@ -337,12 +341,11 @@ def main():
         if ev1 == 'Iniciar simulaçao'  and not win2_active:  
             win2_active = True  
             
-            cria_cidade(int(vals1["n_pessoas"]),int(vals1["n_trabalhos"]),
-                    int(vals1["n_casas"]),int(vals1["sz_casa"]),
-                        int(vals1["sz_trabalho"]),int(vals1["sz_cidade"]))
+            pessoas=cria_cidade(int(vals1["n_pessoas"]),int(vals1["n_trabalhos"]),
+                                int(vals1["n_casas"]),int(vals1["sz_casa"]),
+                                int(vals1["sz_trabalho"]),int(vals1["sz_cidade"]))
 
             n_infecta=int(vals1["n_pessoas"]*vals1["pc_infec"]/100)
-            global total_casos
             total_casos.append(n_infecta)
             idx=list(range(len(pessoas)))
             random.shuffle(idx)
@@ -413,8 +416,8 @@ def main():
             while True:
                 ev2, val2 = win2.read(timeout=1)
                 if ev2 in ('Fechar', None):
-                    win2.close()
                     win2_active=False
+                    win2.close()
                     break
                 
                 dic_cidade={'g':[],'b':[],'y':[],'r':[],'c':[]}
