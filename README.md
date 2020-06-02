@@ -49,7 +49,7 @@ Tecnológico (CNPq)
 
 Se útil, cite:
 Valencio, A.; Valencio, N. Subsidios à uma discussão comunitária acerca de modelagem de epidemias.
-In: Valencio, N.; Malan, C. COVID-19: Crises entremeadas no contexto de pandemia (antecedentes,
+In: Valencio, N.; Oliveira, C. M. COVID-19: Crises entremeadas no contexto de pandemia (antecedentes,
 cenários e recomendações). São Carlos: CPOI-UFSCar, 2020.
 
 Contato: arthur_valencio@physics.org
